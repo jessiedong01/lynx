@@ -14,7 +14,12 @@ both runs.
 Throughput is the mean of two runs. The 0.30.0 row uses the ported
 patches; the 0.20.1 row runs the same ported code, so it also checks that
 the port kept 0.20.1 working. The two versions' ranges don't overlap, so
-the ~4% gap between them looks real. Its cause is not yet known.
+the ~4% gap between them looks real.
+
+The gap does not come from the new model runner. With
+`VLLM_USE_V2_MODEL_RUNNER=0`, vLLM 0.30.0 gives 1.14x (1654.4 → 1882.7
+tok/s), the same as with the default runner. It comes from other changes
+in vLLM 0.30.
 
 Setup:
 
@@ -39,7 +44,7 @@ Notes:
 
 ## Pending
 
-- Find the cause of the 0.30.0 vs 0.20.1 gap.
+- Find which vLLM 0.30 change narrows the speedup.
 - Qwen3.8-Flash-Next: full policy sweep with accuracy. Needs vLLM 0.30+
   and about 4 GPUs.
 - GLM-5.3-Flash: not supported yet. It uses bias-corrected routing
