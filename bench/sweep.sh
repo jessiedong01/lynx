@@ -76,9 +76,13 @@ JSON
   grep -q "lynx: profiling complete" "$OUT/$P.server.log" \
     || echo "WARNING: lynx did not activate for $P"
 
-  vllm bench serve --model "$MODEL" --port "$PORT" \
-    --dataset-name random --random-input-len 512 --random-output-len 256 \
-    --num-prompts 500 --max-concurrency 64 \
+  # Greedy decoding and a fixed output length give every policy identical
+  # work. The warm-up run triggers Triton JIT compiles outside the timed run.
+  BENCH="vllm bench serve --model $MODEL --port $PORT --dataset-name random
+    --random-input-len 512 --random-output-len 256 --max-concurrency 64
+    --temperature 0 --ignore-eos"
+  $BENCH --num-prompts 64 > "$OUT/$P.warmup.log" 2>&1
+  $BENCH --num-prompts 500 \
     --save-result --result-dir "$OUT" --result-filename "$P.bench.json"
 
   if [ "${RUN_ACC:-0}" = 1 ]; then
