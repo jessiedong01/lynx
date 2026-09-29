@@ -2,8 +2,8 @@
 # Sweep Lynx policies for one model: throughput for each, optional GSM8K accuracy.
 # Usage:   ./bench/sweep.sh <hf-model> [tensor-parallel-size]
 # Example: ./bench/sweep.sh Qwen/Qwen3-30B-A3B-Instruct-2507 2
-# Accuracy: RUN_ACC=1 ./bench/sweep.sh ...   (needs `pip install "lm_eval[api]"`;
-#   set EVAL_BIN to its lm_eval if it lives in a separate environment)
+# Accuracy: RUN_ACC=1 ./bench/sweep.sh ...   (needs `pip install "lm_eval[api]"`,
+#   0.5 or later; set EVAL_BIN to its lm_eval if it lives in another environment)
 # Grouped-topk models (GLM, DeepSeek) only have the generic "quant" policy,
 # so sweep alpha instead:  ALPHAS="0.7 1 1.5 2 3 4" ./bench/sweep.sh ...
 # Extra serve flags:       EXTRA_ARGS="--moe-backend triton" ./bench/sweep.sh ...
@@ -105,8 +105,9 @@ JSON
   if [ "${RUN_ACC:-0}" = 1 ]; then
     # Full GSM8K at the benchmark's concurrency: Lynx remaps experts per
     # batch, so accuracy depends on how many requests share a batch.
-    "${EVAL_BIN:-lm_eval}" --model local-completions \
-      --model_args "model=$MODEL,base_url=http://localhost:$PORT/v1/completions,num_concurrent=64,max_retries=3,tokenized_requests=False" \
+    "${EVAL_BIN:-lm_eval}" run --model local-completions \
+      --model_args model="$MODEL" base_url="http://localhost:$PORT/v1/completions" \
+        num_concurrent=64 max_retries=3 tokenized_requests=False \
       --tasks gsm8k --output_path "$OUT/$P.acc" > "$OUT/$P.acc.log" 2>&1 \
       || echo "accuracy failed for $P, see $OUT/$P.acc.log"
   fi
