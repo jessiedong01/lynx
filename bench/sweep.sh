@@ -31,12 +31,15 @@ fi
 
 # Expert counts. Field names differ by family: Qwen uses num_experts,
 # Mixtral uses num_local_experts, GLM/DeepSeek use n_routed_experts.
+# Multimodal models nest them under text_config. Read the raw config.json
+# so models newer than the installed transformers still work.
 read -r TOPK NEXP < <(python - "$MODEL" <<'PY'
-import sys
-from transformers import AutoConfig
-c = AutoConfig.from_pretrained(sys.argv[1], trust_remote_code=True)
-e = next(getattr(c, k) for k in ("num_local_experts", "num_experts", "n_routed_experts") if getattr(c, k, None))
-print(c.num_experts_per_tok, e)
+import json, sys
+from huggingface_hub import hf_hub_download
+c = json.load(open(hf_hub_download(sys.argv[1], "config.json")))
+c = c.get("text_config", c)
+e = next(c[k] for k in ("num_local_experts", "num_experts", "n_routed_experts") if c.get(k))
+print(c["num_experts_per_tok"], e)
 PY
 )
 echo "model=$MODEL top-k=$TOPK experts=$NEXP"

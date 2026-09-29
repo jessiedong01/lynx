@@ -13,6 +13,15 @@ Lynx works with any MoE model that uses vLLM's `FusedMoE` layer. The package shi
 | `deepseek-ai/DeepSeek-Coder-V2-Instruct` |
 | `openai/gpt-oss-120b` |
 | `meta-llama/Llama-4-*` (Scout / Maverick) |
+| `Qwen/Qwen3.8-Flash-Next` (vLLM 0.30+; policy not yet tuned) |
+
+## Not supported yet
+
+Models with bias-corrected routing (`e_score_correction_bias`), such as
+DeepSeek-V3 and GLM-4.5 and later (including GLM-5.3-Flash), select
+experts on score + bias and scale the routing weights. The Lynx kernels
+apply neither, so Lynx leaves these layers on vLLM's own router and logs
+a warning.
 
 ## Adding a new model
 

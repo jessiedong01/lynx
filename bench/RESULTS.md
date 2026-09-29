@@ -19,5 +19,9 @@ policy on the same hardware, so the plugin is loaded in both runs.
 
 ## Pending
 
-- Qwen3.8-Flash-Next (needs vLLM >= 0.29)
-- GLM-5.3-Flash (grouped-topk path: alpha-only sweep via the `quant` policy)
+- vLLM 0.30.0 regression: rerun the Qwen3-30B baseline above on the ported
+  plugin and confirm the same speedup.
+- Qwen3.8-Flash-Next: full policy sweep with accuracy. Needs vLLM 0.30+.
+- GLM-5.3-Flash: not supported yet. It uses bias-corrected routing
+  (`e_score_correction_bias`, `routed_scaling_factor`), which the Lynx
+  kernels don't apply. See docs/MODELS.md.

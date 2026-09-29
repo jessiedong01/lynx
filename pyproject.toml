@@ -16,8 +16,8 @@ requires-python = ">=3.10"
 # vLLM is required at runtime, but we don't pin a hard upper bound on
 # install — users who install vllm separately (e.g. from source) should
 # still be able to install lynx-vllm. The plugin's monkey-patches are
-# validated against vllm 0.20.1; later versions may need a corresponding
-# lynx release.
+# validated against vllm 0.20.1 and ported to 0.30.0; later versions may
+# need a corresponding lynx release.
 dependencies = [
     "vllm>=0.20.1",
 ]

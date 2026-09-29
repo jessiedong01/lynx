@@ -22,6 +22,10 @@ from importlib import resources
 # ``VLLM_LYNX_CONFIG_FILE`` env var). To override at runtime in code,
 # call ``lynx.register_model("substring", "/path/to/policy.json")``.
 LYNX_MODEL_REGISTRY: dict[str, str] = {
+    # Qwen3.8-Flash-Next (512 experts × top-10, plus one shared expert).
+    # Needs vLLM 0.30+. Default copied from the Qwen3 family; replace with
+    # the sweep winner from bench/RESULTS.md.
+    "qwen3.8-flash-next": "qwen3_8_flash_next/quant_alpha3_beta2_optimized.json",
     # Qwen3-235B-A22B Thinking variant (must come BEFORE the
     # less-specific qwen3-235b-a22b key so substring match picks it up
     # for *-Thinking-* model names; *-Instruct-* falls through to the
