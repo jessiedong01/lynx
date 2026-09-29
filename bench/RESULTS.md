@@ -6,13 +6,15 @@ both runs.
 
 ## Qwen3-30B-A3B-Instruct-2507, vLLM 0.20.1 vs 0.30.0
 
-| vLLM | `do-nothing` tok/s | `quant_alpha3_beta2_optimized` tok/s | Speedup | Median TPOT (ms) |
+| vLLM | `do-nothing` tok/s | `quant_alpha3_beta2_optimized` tok/s | Speedup (run 1, run 2) | Median TPOT (ms) |
 |---|---|---|---|---|
-| 0.20.1 | 1634.2 | 1904.0 | 1.17x | 37.0 → 31.4 |
-| 0.30.0 | 1668.5 | 1861.1 | 1.12x | 36.0 → 31.9 |
+| 0.20.1 | 1627.9 | 1907.1 | 1.17x (1.165, 1.178) | 37.0 → 31.6 |
+| 0.30.0 | 1659.5 | 1869.1 | 1.13x (1.115, 1.137) | 37.1 → 31.4 |
 
-Single runs. The 0.30.0 row uses the ported patches; the 0.20.1 row runs
-the same ported code, so it also checks that the port kept 0.20.1 working.
+Throughput is the mean of two runs. The 0.30.0 row uses the ported
+patches; the 0.20.1 row runs the same ported code, so it also checks that
+the port kept 0.20.1 working. The two versions' ranges don't overlap, so
+the ~4% gap between them looks real. Its cause is not yet known.
 
 Setup:
 
@@ -37,7 +39,7 @@ Notes:
 
 ## Pending
 
-- Repeat runs to measure run-to-run variance.
+- Find the cause of the 0.30.0 vs 0.20.1 gap.
 - Qwen3.8-Flash-Next: full policy sweep with accuracy. Needs vLLM 0.30+
   and about 4 GPUs.
 - GLM-5.3-Flash: not supported yet. It uses bias-corrected routing
