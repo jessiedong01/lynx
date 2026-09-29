@@ -1,27 +1,45 @@
 # Benchmark results
 
 Throughput from `bench/sweep.sh`. Speedup is relative to the `do-nothing`
-policy on the same hardware, so the plugin is loaded in both runs.
+policy on the same hardware and vLLM version, so the plugin is loaded in
+both runs.
 
-## Qwen3-30B-A3B-Instruct-2507 (baseline reproduction)
+## Qwen3-30B-A3B-Instruct-2507, vLLM 0.20.1 vs 0.30.0
 
-| Policy | Output tok/s | Speedup |
-|---|---|---|
-| `do-nothing` | 1290.0 | 1.00x |
-| `quant_alpha3_beta2_optimized` | 1606.2 | 1.25x |
+| vLLM | `do-nothing` tok/s | `quant_alpha3_beta2_optimized` tok/s | Speedup | Median TPOT (ms) |
+|---|---|---|---|---|
+| 0.20.1 | 1634.2 | 1904.0 | 1.17x | 37.0 → 31.4 |
+| 0.30.0 | 1668.5 | 1861.1 | 1.12x | 36.0 → 31.9 |
 
-- Hardware: 2× NVIDIA L40S (Stanford FarmShare), TP=2, BF16
-- Software: vLLM 0.20.1, lynx-vllm main
-- Workload: `vllm bench serve`, random dataset, 512 input / 256 output tokens,
-  500 prompts, max concurrency 64
-- Flags: `NCCL_P2P_DISABLE=1`, `--disable-custom-all-reduce`, `--max-model-len 8192`
+Single runs. The 0.30.0 row uses the ported patches; the 0.20.1 row runs
+the same ported code, so it also checks that the port kept 0.20.1 working.
+
+Setup:
+
+- Hardware: 2× NVIDIA L40S (Stanford FarmShare, PCIe, no NVLink), TP=2, BF16
+- Workload: `vllm bench serve`, random dataset, 512 input / 256 output
+  tokens, `--temperature 0 --ignore-eos`, 500 prompts after a 64-prompt
+  warm-up, max concurrency 64. Every run generates exactly 128,000 tokens.
+- Flags: `NCCL_P2P_DISABLE=1`, `--disable-custom-all-reduce`,
+  `--max-model-len 8192`, `VLLM_USE_FLASHINFER_SAMPLER=0`,
+  `VLLM_ALLREDUCE_USE_FLASHINFER=0`
 - Accuracy: not yet measured
+
+Notes:
+
+- These GPUs hang after CUDA graph capture unless GPU peer-to-peer is off,
+  with or without Lynx.
+- vLLM 0.30's FlashInfer sampler and all-reduce JIT-compile on first use,
+  which needs `nvcc`. The two FlashInfer flags above avoid that.
+- An earlier run reported 1.25x on vLLM 0.20.1. It used sampled decoding
+  without `--ignore-eos`, so the two policies generated different amounts
+  of work. The table above replaces it.
 
 ## Pending
 
-- vLLM 0.30.0 regression: rerun the Qwen3-30B baseline above on the ported
-  plugin and confirm the same speedup.
-- Qwen3.8-Flash-Next: full policy sweep with accuracy. Needs vLLM 0.30+.
+- Repeat runs to measure run-to-run variance.
+- Qwen3.8-Flash-Next: full policy sweep with accuracy. Needs vLLM 0.30+
+  and about 4 GPUs.
 - GLM-5.3-Flash: not supported yet. It uses bias-corrected routing
   (`e_score_correction_bias`, `routed_scaling_factor`), which the Lynx
   kernels don't apply. See docs/MODELS.md.
